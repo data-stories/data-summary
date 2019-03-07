@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Dataset Summary Tool</title>
+    <meta charset="UTF-8">
+    <script type="text/javascript" src="dist/js/app.min.js"></script>
+    <link type="text/css" rel="stylesheet" href="dist/css/app.min.css">
+    <link type="text/css" rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+  </head>
+  <body>
+    <div class="container">
+      <div class="main">
+
+        <h1 class="h2 page-title text-center">Dataset Summary Tool</h1>
+
+        <ul class="step-custom clearfix">
+          <li id="step-1" class="step-item active">
+            <a href="#" class="tooltip" data-tooltip="Step 1">File Upload</a>
+          </li>
+          <li id="step-2" class="step-item">
+            <a href="#" class="tooltip" data-tooltip="Step 2">Questionnaire</a>
+          </li>
+          <li id="step-3" class="step-item">
+            <a href="#" class="tooltip" data-tooltip="Step 3">Summary</a>
+          </li>
+        </ul>
+
+        <div class="panel">
+
+          <div id="upload-view" class="text-center">
+            <h1 class="h4">File Upload</h1>
+            <p>Create a textual summary for your CSV (or TSV) file. All processing happens locally in your browser using JavaScript and your data will not be shared with anyone. Your file <strong>must contain headings as the first row</strong> in order for this tool to work as intended.</p>
+            <div class="form-group">
+              <input id="file" type="file" name="file" accept=".csv, .tsv"/>
+              <label class="btn btn-lg btn-primary" for="file">Choose a file <i class="icofont-upload-alt"></i></label>
+            </div>
+            <div id="file-info" class="mb-0">
+              <small id="selected-file-name" class="label">No file chosen</small>
+              <small id="selected-file-size"></small>
+            </div>
+            <div id="max-file-size"><small>Maximum file size: 100MB</small></div>
+            <button id="clear" class="btn btn-link">Reset</button>
+            <button id="parse" class="btn">Create summary</button>
+            <div id="parsing-file-message" class="hidden">
+              <span>Processing file</span>
+              <div class="loading d-inline"></div>
+            </div>
+          </div>
+
+          <div id="questionnaire-view" class="d-hide">
+            <h1 class="h4">Questionnaire</h1>
+            <p>Please answer some questions about your dataset to ensure an accurate summary is generated. Some answers have been detected and filled out for you but you may change them. Answer in as much detail as you can.</p>
+
+            <p class="text-error"><span class="required-asterisk text-error">*</span> Required</p>
+
+            <div id="form-alert" class="toast toast-error d-hide">
+              <button class="btn btn-clear float-right"></button>
+              Please correct the highlighted fields.
+            </div>
+
+            <form id="questionnaire-form">
+              <div class="box">
+                <h2 class="h5">About</h2>
+                <div class="columns">
+                  <div class="column col-12 form-group">
+                    <label class="form-label" for="about">Please complete the following sentence: "This dataset is about..." <span class="required-asterisk text-error">*</span>
+                      <div class="popover popover-top">
+                        <i class="icofont-info-circle"></i>
+                        <div class="popover-container">
+                          <div class="card">
+                            <div class="card-body">
+                              One sentence describing what the dataset is about, e.g. This dataset is about avocado prices in Europe over the past 10 years.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                    <input id="about" class="form-input" type="text" name="about" placeholder="">
+                  </div>
+                </div>
+              </div>
+
+              <div class="box">
+                <h2 class="h5">Format</h2>
+                <div class="columns">
+                  <div class="column col-6 col-xs-12 form-group">
+                    <label class="form-label" for="format">What is the file format? <span class="required-asterisk text-error">*</span></label>
+                    <input id="format" class="form-input" type="text" name="format">
+                  </div>
+                  <div class="column col-6 col-xs-12 form-group">
+                    <label class="form-label" for="columns">How many columns are there? <span class="required-asterisk text-error">*</span></label>
+                    <input id="columns" class="form-input" type="text" name="columns">
+                  </div>
+                  <div class="column col-6 col-xs-12 form-group">
+                    <label class="form-label" for="rows">How many rows are there? <span class="required-asterisk text-error">*</span></label>
+                    <input id="rows" class="form-input" type="text" name="rows">
+                  </div>
+                  <div class="column col-6 col-xs-12 form-group">
+                    <label class="form-label" for="anything-else">Is there anything else you want to mention?
+                      <div class="popover popover-top">
+                        <i class="icofont-info-circle"></i>
+                        <div class="popover-container">
+                          <div class="card">
+                            <div class="card-body">
+                              E.g. Is the dataset machine readable?
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                    <input id="anything-else" class="form-input" type="text" name="anything-else">
+                  </div>
+                </div>
+              </div>
+
+              <div class="box">
+                <h2 class="h5">Headers</h2>
+                <div class="columns">
+                  <div class="column col-12 form-group">
+                    <label class="form-label" for="headers">Headers <span class="required-asterisk text-error">*</span> (These should be the first row of the file)</label>
+                    <input class="form-input" type="text" name="headers" id="headers" readonly>
+                  </div>
+                </div>
+                <div class="columns">
+                  <div class="column col-12">
+                    <label class="form-label">Select the three most important headers, their value types, and their minimum and maximum values if applicable</label>
+                  </div>
+                  <div class="column col-3 col-xs-12 form-group">
+                    <label class="form-label" for="key-col-one">Header <span class="required-asterisk text-error">*</span></label>
+                    <select id="key-col-one" class="form-select col-select key-col-select" name="key-col-one"></select>
+                  </div>
+                  <div class="column col-3 col-xs-12 form-group">
+                    <label class="form-label" for="key-col-one-type">
+                      Value type <span class="required-asterisk text-error">*</span>
+                      <div class="popover popover-top">
+                        <i class="icofont-info-circle"></i>
+                        <div class="popover-container">
+                          <div class="card">
+                            <div class="card-body">
+                              The type of content in a column. Whole number (e.g. 12), Decimal (e.g. 7.5), Binary (e.g. 0/1 or yes/no), Date (e.g. 01/03/2018), Letters and numbers (e.g. 50 Street).
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                    <select id="key-col-one-type" class="form-select col-type-select" name="key-col-one-type"></select>
+                  </div>
+                  <div class="column col-3 col-xs-12 form-group">
+                    <label class="form-label" for="key-col-one-min">
+                      Value min
+                      <div class="popover popover-top">
+                        <i class="icofont-info-circle"></i>
+                        <div class="popover-container">
+                          <div class="card">
+                            <div class="card-body">
+                              The minimum value that the chosen column displays. This is not relevant for words but for all other value types.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                    <input id="key-col-one-min" class="form-input" type="text" name="key-col-one-min">
+                  </div>
+                  <div class="column col-3 col-xs-12 form-group">
+                    <label class="form-label" for="key-col-one-max">
+                      Value max
+                      <div class="popover popover-top">
+                        <i class="icofont-info-circle"></i>
+                        <div class="popover-container">
+                          <div class="card">
+                            <div class="card-body">
+                              The maximum value that the chosen column displays. This is not relevant for words but for all other value types.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                    <input id="key-col-one-max" class="form-input" type="text" name="key-col-one-max">
+                  </div>
+                  <div class="column col-3 col-xs-12 form-group">
+                    <label class="form-label" for="key-col-two">Header <span class="required-asterisk text-error">*</span></label>
+                    <select id="key-col-two" class="form-select col-select key-col-select" name="key-col-two"></select>
+                  </div>
+                  <div class="column col-3 col-xs-12 form-group">
+                    <label class="form-label" for="key-col-two-type">Value type <span class="required-asterisk text-error">*</span></label>
+                    <select id="key-col-two-type" class="form-select col-type-select" name="key-col-two-type"></select>
+                  </div>
+                  <div class="column col-3 col-xs-12 form-group">
+                    <label class="form-label" for="key-col-two-min">Value min</label>
+                    <input id="key-col-two-min" class="form-input" type="text" name="key-col-two-min">
+                  </div>
+                  <div class="column col-3 col-xs-12 form-group">
+                    <label class="form-label" for="key-col-two-max">Value max</label>
+                    <input id="key-col-two-max" class="form-input" type="text" name="key-col-two-max">
+                  </div>
+                  <div class="column col-3 col-xs-12 form-group">
+                    <label class="form-label" for="key-col-three">Header <span class="required-asterisk text-error">*</span></label>
+                    <select id="key-col-three" class="form-select col-select key-col-select" name="key-col-three"></select>
+                  </div>
+                  <div class="column col-3 col-xs-12 form-group">
+                    <label class="form-label" for="key-col-three-type">Value type <span class="required-asterisk text-error">*</span></label>
+                    <select id="key-col-three-type" class="form-select col-type-select" name="key-col-three-type"></select>
+                  </div>
+                  <div class="column col-3 col-xs-12 form-group">
+                    <label class="form-label" for="key-col-three-min">Value min</label>
+                    <input id="key-col-three-min" class="form-input" type="text" name="key-col-three-min">
+                  </div>
+                  <div class="column col-3 col-xs-12 form-group">
+                    <label class="form-label" for="key-col-three-max">Value max</label>
+                    <input id="key-col-three-max" class="form-input" type="text" name="key-col-three-max">
+                  </div>
+                </div>
+                <div class="columns">
+                  <div class="column col-12 form-group">
+                    <label class="form-label" for="headers-grouping">
+                      Can you see any obvious high-level themes in the headers?
+                      <div class="popover popover-top">
+                        <i class="icofont-info-circle"></i>
+                        <div class="popover-container">
+                          <div class="card">
+                            <div class="card-body">
+                              E.g. The headers describe people (name, age, nationality) and they describe a location (country, city, street).
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                    <input class="form-input" type="text" name="headers-grouping" id="headers-grouping">
+                  </div>
+                </div>
+              </div>
+
+              <div class="box">
+                <h2 class="h5">Provenance</h2>
+                <div class="columns">
+                  <div class="column col-6 col-xs-12 form-group">
+                    <label class="form-label" for="publisher">
+                      Who is the publisher of the dataset? <span class="required-asterisk text-error">*</span>
+                      <div class="popover popover-top">
+                        <i class="icofont-info-circle"></i>
+                        <div class="popover-container">
+                          <div class="card">
+                            <div class="card-body">
+                              The organisation which published the dataset e.g. The Office of National statistics.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                    <input id="publisher" class="form-input" type="text" name="publisher">
+                  </div>
+                  <div class="column col-6 col-xs-12 form-group">
+                    <label class="form-label" for="published-date">
+                      When was the dataset published?
+                      <div class="popover popover-top">
+                        <i class="icofont-info-circle"></i>
+                        <div class="popover-container">
+                          <div class="card">
+                            <div class="card-body">
+                              E.g. The date the dataset was published or is going to be published.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                    <input id="published-date" class="form-input" type="text" name="published-date" placeholder="dd/mm/yyyy or mm/yyyy or yyyy">
+                  </div>
+                  <div class="column col-6 col-xs-12 form-group">
+                    <label class="form-label" for="last-updated-date">
+                      When was the dataset last updated?
+                      <div class="popover popover-top">
+                        <i class="icofont-info-circle"></i>
+                        <div class="popover-container">
+                          <div class="card">
+                            <div class="card-body">
+                              If the dataset is updated on a regular basis mention the last time it was updated.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                    <input id="last-updated-date" class="form-input" type="text" name="last-updated-date" placeholder="dd/mm/yyyy or mm/yyyy or yyyy">
+                  </div>
+                  <div class="column col-6 col-xs-12 form-group">
+                    <label class="form-label" for="collected-date">
+                      When was the data collected?
+                      <div class="popover popover-top">
+                        <i class="icofont-info-circle"></i>
+                        <div class="popover-container">
+                          <div class="card">
+                            <div class="card-body">
+                              Time of data collection e.g. 2016
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                    <input id="collected-date" class="form-input" type="text" name="collected-date" placeholder="dd/mm/yyyy or mm/yyyy or yyyy">
+                  </div>
+                </div>
+              </div>
+
+              <div class="box">
+                <h2 class="h5">Time</h2>
+                <div class="columns">
+                  <div class="column col-12 form-group">
+                    <label class="form-label">Does the dataset contain date/time information? <span class="required-asterisk text-error">*</span></label>
+                    <label class="form-radio form-inline">
+                      <input type="radio" id="time-yes" name="time" value="yes"><i class="form-icon"></i> Yes
+                    </label>
+                    <label class="form-radio form-inline">
+                      <input type="radio" id="time-no" name="time" value="no" checked><i class="form-icon"></i> No
+                    </label>
+                  </div>
+                  <div id="time-question-two" class="column col-12 form-group hidden">
+                    <label class="form-label">Does the data span a period of time (choose the most important time column)? <span class="required-asterisk text-error">*</span></label>
+                    <label class="form-radio form-inline">
+                      <input type="radio" id="timespan-yes" name="timespan" value="yes"><i class="form-icon"></i> Yes
+                    </label>
+                    <label class="form-radio form-inline">
+                      <input type="radio" id="timespan-no" name="timespan" value="no" checked><i class="form-icon"></i> No
+                    </label>
+                  </div>
+                </div>
+                <div id="time-question-three" class="columns hidden">
+                  <div class="column col-6 col-xs-12 form-group">
+                    <label class="form-label" for="timeframe-start">What is the start date? <span class="required-asterisk text-error">*</span></label>
+                    <input id="timeframe-start" class="form-input" type="text" name="timeframe-start" placeholder="dd/mm/yyyy or mm/yyyy or yyyy">
+                  </div>
+                  <div class="column col-6 col-xs-12 form-group">
+                    <label class="form-label" for="timeframe-end">What is the end date? <span class="required-asterisk text-error">*</span></label>
+                    <input id="timeframe-end" class="form-input" type="text" name="timeframe-end" placeholder="dd/mm/yyyy or mm/yyyy or yyyy">
+                  </div>
+                </div>
+                <div id="time-question-four" class="columns hidden">
+                  <div class="column col-12 form-group">
+                    <label class="form-label" for="timeframe-other">Please describe how the time information is presented</label>
+                    <input id="timeframe-other" class="form-input" type="text" name="timeframe-other">
+                  </div>
+                </div>
+              </div>
+
+              <div class="box">
+                <h2 class="h5">Location</h2>
+                <div class="columns">
+                  <div class="column col-12 form-group">
+                    <label class="form-label" for="geo-area">
+                      Which geographical information is present in the data?
+                      <div class="popover popover-top">
+                        <i class="icofont-info-circle"></i>
+                        <div class="popover-container">
+                          <div class="card">
+                            <div class="card-body">
+                              E.g. a country, a region, a city (see drop down menu). If other, please describe e.g. "a fictional universe" or "a specific university"
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                    <div class="form-group">
+                      <label class="form-checkbox form-inline">
+                        <input type="checkbox" id="world" name="geo-area[]" value="world">
+                        <i class="form-icon"></i> World
+                      </label>
+                      <label class="form-checkbox form-inline">
+                        <input type="checkbox" id="continent" name="geo-area[]" value="continent">
+                        <i class="form-icon"></i> Continent
+                      </label>
+                      <label class="form-checkbox form-inline">
+                        <input type="checkbox" id="country" name="geo-area[]" value="country">
+                        <i class="form-icon"></i> Country
+                      </label>
+                      <label class="form-checkbox form-inline">
+                        <input type="checkbox" id="city" name="geo-area[]" value="city">
+                        <i class="form-icon"></i> City
+                      </label>
+                      <label class="form-checkbox form-inline">
+                        <input type="checkbox" id="street" name="geo-area[]" value="street">
+                        <i class="form-icon"></i> Street
+                      </label>
+                      <label class="form-checkbox form-inline">
+                        <input type="checkbox" id="address" name="geo-area[]" value="address">
+                        <i class="form-icon"></i> Address
+                      </label>
+                    </div>
+                  </div>
+                  <div class="column col-12 form-group">
+                    <label class="form-label" for="geo-area-other">If other, please describe</label>
+                    <input id="geo-area-other" class="form-input" type="text" name="geo-area-other">
+                  </div>
+                  <div class="column col-12 form-group">
+                    <label class="form-label" for="geo-detail">
+                      How and to what level of detail is the geographical area displayed?
+                      <div class="popover popover-top">
+                        <i class="icofont-info-circle"></i>
+                        <div class="popover-container">
+                          <div class="card">
+                            <div class="card-body">
+                              E.g. City name and street address including house numbers are given.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                    <input id="geo-detail" class="form-input" type="text" name="geo-detail">
+                  </div>
+                </div>
+              </div>
+
+              <div class="box">
+                <h2 class="h5">Quality</h2>
+                <div class="columns">
+                  <div class="column col-12 form-group">
+                    <label class="form-label">How many empty cells are there?</label>
+                    <input id="empty-cell-count" class="form-input" type="text" name="empty-cell-count" readonly>
+                  </div>
+                  <div class="column col-12 form-group">
+                    <label class="form-label" for="quality-a">
+                      What do missing values signify?
+                      <div class="popover popover-top">
+                        <i class="icofont-info-circle"></i>
+                        <div class="popover-container">
+                          <div class="card">
+                            <div class="card-body">
+                              If the dataset contains missing values, can you describe what that means in the context of the dataset, e.g. "There was no data available for this country" or "If there is an empty cell, the sensor for this particular location was broken and did not record".
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                    <input id="quality-a" class="form-input" type="text" name="quality-a">
+                  </div>
+                  <div class="column col-12 form-group">
+                    <label class="form-label" for="quality-b">
+                      Is there anything unclear about the data, or do you know of caveats attached to it?
+                      <div class="popover popover-top">
+                        <i class="icofont-info-circle"></i>
+                        <div class="popover-container">
+                          <div class="card">
+                            <div class="card-body">
+                              E.g. Unclear location / description of...
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                    <input id="quality-b" class="form-input" type="text" name="quality-b">
+                  </div>
+                  <div class="column col-12 form-group">
+                    <label class="form-label">
+                      Are there any headers you want to describe in more detail?
+                      <div class="popover popover-top">
+                        <i class="icofont-info-circle"></i>
+                        <div class="popover-container">
+                          <div class="card">
+                            <div class="card-body">
+                              E.g. Column X shows the ISO code of the Country for that row.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+                <div id="header-desc-input-container">
+                  <div class="header-desc-input columns">
+                    <div class="column col-3 form-group">
+                      <label class="form-label" for="header-1">Header</label>
+                      <select id="header-1" class="form-select col-select hd-select" name="header-1"></select>
+                    </div>
+                    <div class="column col-9 form-group">
+                      <label class="form-label" for="header-desc-1">Description</label>
+                      <input id="header-desc-1" class="form-input hd-input" type="text" name="header-desc-1">
+                    </div>
+                  </div>
+                </div>
+                <button id="add-header-desc-input" class="btn p-centered">Add header description +</button>
+              </div>
+
+              <div class="box">
+                <h2 class="h5">Analysis</h2>
+                <div class="columns">
+                  <div class="column col-12 form-group">
+                    <label class="form-label" for="analysis-a">
+                      Are there obvious trends or patterns in the data?
+                      <div class="popover popover-top">
+                        <i class="icofont-info-circle"></i>
+                        <div class="popover-container">
+                          <div class="card">
+                            <div class="card-body">
+                              E.g. The data shows that the number of flu cases goes up in the winter months.
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </label>
+                    <textarea id="analysis-a" class="form-input" name="analysis-a"></textarea>
+                  </div>
+                  <div class="column col-12 form-group">
+                    <label class="form-label" for="analysis-b">Is there anything else you want to mention?</label>
+                    <input id="analysis-b" class="form-input" type="text" rows="3" name="analysis-b">
+                  </div>
+                </div>
+              </div>
+
+              <div class="columns">
+                <div class="column col-12">
+                  <button id="questionnaire-back" class="btn float-left">Back</button>
+                  <button id="submit" class="btn btn-primary float-right">Create Summary</button>
+                </div>
+              </div>
+
+            </form>
+          </div><!-- END QUESTIONNAIRE VIEW -->
+
+          <div id="summary-view" class="d-hide">
+            <h1 class="h4">Summary for <span id="summary-file-name" class="text-primary"></span></h1>
+            <p>The generated summary for your file is shown below in various formats which you can edit and download.</p>
+            <div class="box">
+              <h2 class="h5 d-inline-block">Text</h2>
+              <div class="download-button-wrapper">
+                <div class="btn-group">
+                  <button class="btn btn-sm" id="download-summary-text">Download <i class="icofont-download"></i></button>
+                  <button class="btn btn-sm" data-clipboard-target="#summary-text-editable">Copy <i class="icofont-ui-copy"></i></button>
+                </div>
+                <textarea class="form-input" id="summary-text-editable" rows="10"></textarea>
+              </div>
+            </div>
+
+            <div class="box">
+              <h2 class="h5 d-inline-block">Table</h2>
+              <div id="summary-table"></div>
+            </div>
+
+            <div class="box">
+              <h2 class="h5 d-inline-block">Table (as CSV)</h2>
+              <div class="download-button-wrapper">
+                <div class="btn-group">
+                  <button class="btn btn-sm" id="download-summary-table-csv">Download <i class="icofont-download"></i></button>
+                  <button class="btn btn-sm" data-clipboard-target="#summary-table-csv">Copy <i class="icofont-ui-copy"></i></button>
+                </div>
+                <pre><code id="summary-table-csv"></code></pre>
+              </div>
+            </div>
+
+            <div class="box">
+              <h2 class="h5 d-inline-block">JSON (formatted)</h2>
+              <div class="download-button-wrapper">
+                <div class="btn-group">
+                  <button class="btn btn-sm" id="download-summary-json-formatted">Download <i class="icofont-download"></i></button>
+                  <button class="btn btn-sm" data-clipboard-target="#summary-json-formatted">Copy <i class="icofont-ui-copy"></i></button>
+                </div>
+                <pre><code id="summary-json-formatted"></code></pre>
+              </div>
+            </div>
+
+            <div class="box">
+              <h2 class="h5 d-inline-block">JSON</h2>
+              <div class="download-button-wrapper">
+                <div class="btn-group">
+                  <button class="btn btn-sm" id="download-summary-json">Download <i class="icofont-download"></i></button>
+                  <button class="btn btn-sm" data-clipboard-target="#summary-json">Copy <i class="icofont-ui-copy"></i></button>
+                </div>
+                <pre><code id="summary-json"></code></pre>
+              </div>
+            </div>
+
+            <div class="columns">
+              <div class="column col-12">
+                <button id="summary-back" class="btn">Back to questionnaire</button>
+              </div>
+            </div>
+          </div><!-- END SUMMARY VIEW -->
+
+          <div class="modal" id="upload-alert">
+            <a href="#close" class="modal-overlay" aria-label="Close"></a>
+            <div class="modal-container">
+              <div class="modal-header">
+                <div class="modal-title h5">Notice</div>
+              </div>
+              <div class="modal-body">
+                <div class="content">
+                  Some potential issues were detected with your file. You may continue anyway but the tool might provide less accurate results.
+                  <ul></ul>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button id="upload-alert-continue" class="btn upload-alert-close">Continue</button>
+                <button class="btn btn-link upload-alert-close">Close</button>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- END PANEL -->
+
+        <footer class="text-center">
+          <ul>
+            <li>
+              <a target="_blank" href="http://datastories.co.uk/"><img alt="http://datastories.co.uk/" src="dist/images/data-stories.png"></a>
+            </li>
+            <li>
+              <a target="_blank" href="http://theybuyforyou.eu/"><img alt="http://theybuyforyou.eu/" src="dist/images/tbfy.png"></a>
+            </li>
+          </ul>
+          <p class="mb-0">This tool is based on research in Human Structured Data Interaction.</p>
+          <p>For more information and related publications see <a target="_blank" href="https://laurakoesten.github.io/">https://laurakoesten.github.io/</a></p>
+          <p class="mb-0">This project has been supported by TheyBuyForYou (a European Union's Horizon 2020 research and innovation programme, grant agreement No 780247)</p>
+        </footer>
+
+      </div><!-- END MAIN -->
+    </div><!-- END CONTAINER -->
+  </body>
+</html>
